@@ -59,8 +59,30 @@ npm run build
 | `npm run build` | 프로덕션 빌드 |
 | `npm run test` | 테스트 실행 |
 | `npm run test:coverage` | 테스트 커버리지 리포트 |
+| `npm run test:e2e` | E2E 테스트 실행 |
 | `npm run lint` | ESLint 검사 |
 | `npm run format` | Prettier 포맷팅 |
+
+### E2E 테스트 서버
+
+E2E 테스트를 위한 로컬 서버를 실행하려면:
+
+```bash
+cd tests/e2e/pages
+npx serve -l 3000
+```
+
+서버 실행 후 http://localhost:3000 에서 테스트 페이지에 접근할 수 있습니다.
+
+**테스트 페이지 목록**:
+| 페이지 | 설명 |
+|--------|------|
+| `/index.html` | 메인 페이지 |
+| `/normal-payment.html` | 정상 결제 페이지 |
+| `/formjacking-attack.html` | 폼재킹 공격 시뮬레이션 |
+| `/beacon-exfiltration.html` | Beacon API 탈취 시뮬레이션 |
+| `/delayed-exfiltration.html` | 지연 탈취 시뮬레이션 |
+| `/trusted-gateway.html` | 신뢰 게이트웨이 테스트 |
 
 ### 프로젝트 구조
 

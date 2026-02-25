@@ -180,6 +180,25 @@ export function maskSensitiveFields(
 }
 
 /**
+ * URL의 쿼리 파라미터 값만 마스킹
+ * scheme/host/path는 보존하고, fragment는 제거
+ */
+export function maskUrlQueryParams(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const masked = new URLSearchParams();
+    parsed.searchParams.forEach((_value, key) => {
+      masked.set(key, '****');
+    });
+    parsed.search = masked.size > 0 ? '?' + masked.toString() : '';
+    parsed.hash = '';
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
  * JSON 문자열에서 민감 데이터 마스킹
  */
 export function maskSensitiveJSON(

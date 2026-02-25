@@ -113,7 +113,7 @@ import { IEventRepository } from '@domain/ports/IEventRepository';
 import { IMessenger } from '@domain/ports/IMessenger';
 import { ISettingsRepository } from '@domain/ports/ISettingsRepository';
 import { createHeuristicEngine, HeuristicEngine } from '@domain/services/HeuristicEngine';
-import { StubAIAdapter } from '@infrastructure/adapters/StubAIAdapter';
+import { ProxyAIAdapter } from '@infrastructure/adapters/proxy/ProxyAIAdapter';
 import { ChromeMessenger } from '@infrastructure/messaging/ChromeMessenger';
 import { ChromeStorageSettingsRepository } from '@infrastructure/repositories/ChromeStorageSettingsRepository';
 import { DeclarativeNetRequestBlockingRepository } from '@infrastructure/repositories/DeclarativeNetRequestBlockingRepository';
@@ -230,8 +230,8 @@ export class Container {
     this.registerSingleton('eventRepository', () => new IndexedDBEventRepository());
     this.registerSingleton('settingsRepository', () => new ChromeStorageSettingsRepository());
     this.registerSingleton('blockingRepository', () => new DeclarativeNetRequestBlockingRepository());
-    // AI 분석기 (브라우저 환경에서는 스텁 사용, 실제 AI는 백엔드 서비스 필요)
-    this.registerSingleton('aiAnalyzer', () => new StubAIAdapter());
+    // AI 분석기 (프록시 서버를 통해 AI 분석 요청)
+    this.registerSingleton('aiAnalyzer', () => new ProxyAIAdapter());
     this.registerSingleton('messenger', () => new ChromeMessenger());
 
     // Domain 서비스

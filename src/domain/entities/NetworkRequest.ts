@@ -63,6 +63,7 @@ export interface NetworkRequestProps {
   payloadSize: number;
   payloadFormat?: PayloadFormat;
   initiatorScript?: string;
+  triggerEvent?: 'click' | 'submit' | 'blur' | 'timer' | 'unknown';
   timestamp: number;
 }
 
@@ -123,6 +124,7 @@ export function createNetworkRequest(props: NetworkRequestProps): NetworkRequest
     payloadSize: props.payloadSize,
     ...(props.payloadFormat !== undefined ? { payloadFormat: props.payloadFormat } : {}),
     ...(props.initiatorScript !== undefined ? { initiatorScript: props.initiatorScript } : {}),
+    ...(props.triggerEvent !== undefined ? { triggerEvent: props.triggerEvent } : {}),
     timestamp: props.timestamp,
     domain
   });

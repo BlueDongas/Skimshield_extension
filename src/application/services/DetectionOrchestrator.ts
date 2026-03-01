@@ -316,6 +316,7 @@ export class DetectionOrchestrator {
       payloadSize: number;
       payloadFormat?: PayloadFormat;
       initiatorScript?: string;
+      triggerEvent?: 'click' | 'submit' | 'blur' | 'timer' | 'unknown';
       timestamp: number;
       headers?: Record<string, string>;
     } = {
@@ -336,6 +337,10 @@ export class DetectionOrchestrator {
 
     if (dto.request.initiatorScript !== undefined) {
       requestProps.initiatorScript = dto.request.initiatorScript;
+    }
+
+    if (dto.request.triggerEvent !== undefined) {
+      requestProps.triggerEvent = dto.request.triggerEvent;
     }
 
     const request: NetworkRequest = createNetworkRequest(requestProps);

@@ -89,6 +89,7 @@ class ContentScript {
   private domAnalyzer: DOMAnalyzer;
   private warningModal: WarningModal;
   private state: ContentScriptState;
+  private lastClickTimestamp = 0;
 
   constructor() {
     this.inputMonitor = new InputMonitor();
@@ -139,6 +140,11 @@ class ContentScript {
    * 모니터링 시작
    */
   private startMonitoring(): void {
+    // 클릭 이벤트 추적 (triggerEvent 추론용)
+    document.addEventListener('click', () => {
+      this.lastClickTimestamp = Date.now();
+    }, true);
+
     // 입력 모니터 시작
     this.inputMonitor.onSensitiveInput(this.handleSensitiveInput.bind(this));
     this.inputMonitor.start();
@@ -397,6 +403,26 @@ class ContentScript {
         ? detectPayloadFormat(request.body, contentType)
         : undefined;
 
+      const now = request.timestamp;
+      const mostRecentInputTime = sensitiveInputs.length > 0
+        ? Math.max(...sensitiveInputs.map(i => i.timestamp))
+        : 0;
+      const timeSinceClick = now - this.lastClickTimestamp;
+      const timeSinceInput = mostRecentInputTime > 0 ? now - mostRecentInputTime : Infinity;
+
+      let triggerEvent: 'click' | 'submit' | 'blur' | 'timer' | 'unknown';
+      if (request.type === NetworkRequestType.FORM) {
+        triggerEvent = 'submit';
+      } else if (timeSinceClick < 500) {
+        triggerEvent = 'click';
+      } else if (timeSinceInput < 2000) {
+        triggerEvent = 'blur';
+      } else if (timeSinceInput > 10000) {
+        triggerEvent = 'timer';
+      } else {
+        triggerEvent = 'unknown';
+      }
+
       const requestPayload = {
         type: request.type,
         url: request.url,
@@ -405,6 +431,7 @@ class ContentScript {
         payloadSize: request.body?.length ?? 0,
         ...(detectedFormat !== undefined ? { payloadFormat: detectedFormat } : {}),
         ...(request.initiatorScript !== undefined ? { initiatorScript: request.initiatorScript } : {}),
+        triggerEvent,
         timestamp: request.timestamp
       };
 

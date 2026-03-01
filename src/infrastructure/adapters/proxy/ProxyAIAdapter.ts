@@ -108,10 +108,8 @@ export class ProxyAIAdapter implements IAIAnalyzer {
       }
     }
 
-    let triggerEvent: 'click' | 'submit' | 'blur' | 'timer' | 'unknown' = 'unknown';
-    if (req.type === NetworkRequestType.FORM) {
-      triggerEvent = 'submit';
-    }
+    const triggerEvent: 'click' | 'submit' | 'blur' | 'timer' | 'unknown' =
+      req.triggerEvent ?? 'unknown';
 
     const mostRecent = findMostRecentInput(recentInputs);
     const timeSinceLastInputMs = mostRecent

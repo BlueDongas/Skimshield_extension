@@ -66,6 +66,7 @@ export interface AnalysisRequestDTO {
     payloadSize: number;
     payloadFormat?: PayloadFormat;
     initiatorScript?: string;
+    triggerEvent?: 'click' | 'submit' | 'blur' | 'timer' | 'unknown';
     timestamp: number;
   };
   /** 최근 민감 입력 정보 */

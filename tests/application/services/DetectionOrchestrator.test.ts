@@ -284,7 +284,7 @@ describe('DetectionOrchestrator', () => {
   });
 
   describe('알림', () => {
-    it('위험한 결과에 대해 알림을 보내야 한다', async () => {
+    it('위험한 결과를 이벤트로 저장하고 반환해야 한다', async () => {
       (mockHeuristicEngine.analyze as jest.Mock).mockReturnValue({
         verdict: Verdict.DANGEROUS,
         confidence: 0.95,
@@ -293,14 +293,12 @@ describe('DetectionOrchestrator', () => {
       });
 
       const request = createTestAnalysisRequest();
-      await orchestrator.analyzeNetworkRequest(request, 123);
+      const result = await orchestrator.analyzeNetworkRequest(request, 123);
 
-      expect(mockMessenger.sendToTab).toHaveBeenCalledWith(
-        123,
-        expect.objectContaining({
-          type: MessageType.SHOW_WARNING
-        })
-      );
+      expect(result.verdict).toBe(Verdict.DANGEROUS);
+      expect(mockEventRepo.save).toHaveBeenCalled();
+      // 경고 표시는 content script가 분석 응답을 받아 직접 처리
+      expect(mockMessenger.sendToTab).not.toHaveBeenCalled();
     });
 
     it('알림이 비활성화되면 알림을 보내지 않아야 한다', async () => {
@@ -322,7 +320,7 @@ describe('DetectionOrchestrator', () => {
       expect(mockMessenger.sendToTab).not.toHaveBeenCalled();
     });
 
-    it('의심스러운 결과에 대해서도 알림을 보내야 한다', async () => {
+    it('의심스러운 결과도 이벤트로 저장하고 반환해야 한다', async () => {
       (mockHeuristicEngine.analyze as jest.Mock).mockReturnValue({
         verdict: Verdict.SUSPICIOUS,
         confidence: 0.7,
@@ -334,14 +332,12 @@ describe('DetectionOrchestrator', () => {
       (mockAIAnalyzer.isAvailable as jest.Mock).mockResolvedValue(false);
 
       const request = createTestAnalysisRequest();
-      await orchestrator.analyzeNetworkRequest(request, 456);
+      const result = await orchestrator.analyzeNetworkRequest(request, 456);
 
-      expect(mockMessenger.sendToTab).toHaveBeenCalledWith(
-        456,
-        expect.objectContaining({
-          type: MessageType.SHOW_WARNING
-        })
-      );
+      expect(result.verdict).toBe(Verdict.SUSPICIOUS);
+      expect(mockEventRepo.save).toHaveBeenCalled();
+      // 경고 표시는 content script가 분석 응답을 받아 직접 처리
+      expect(mockMessenger.sendToTab).not.toHaveBeenCalled();
     });
 
     it('tabId가 없으면 알림을 보내지 않아야 한다', async () => {

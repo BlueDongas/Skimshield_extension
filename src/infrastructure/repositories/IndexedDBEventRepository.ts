@@ -152,9 +152,11 @@ export class IndexedDBEventRepository implements IEventRepository {
       records = records.filter((r) => r.verdict === filter.verdict);
     }
 
-    // domain 필터 (현재 페이지 도메인 기준)
+    // domain 필터 (대상 도메인 또는 현재 페이지 도메인 기준)
     if (filter.domain !== undefined) {
-      records = records.filter((r) => r.currentDomain === filter.domain);
+      records = records.filter(
+        (r) => r.targetDomain === filter.domain || r.currentDomain === filter.domain
+      );
     }
 
     // fromTimestamp 필터

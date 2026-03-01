@@ -40,6 +40,9 @@ interface MockDeps {
     manageWhitelist: jest.Mock;
     getWhitelistedDomains: jest.Mock;
   };
+  manageBlockingUseCase: {
+    handleUserAction: jest.Mock;
+  };
   eventRepository: {
     findRecent: jest.Mock;
     findByFilter: jest.Mock;
@@ -100,6 +103,9 @@ describe('MessageHandler', () => {
         resetSettings: jest.fn().mockResolvedValue(undefined),
         manageWhitelist: jest.fn().mockResolvedValue(undefined),
         getWhitelistedDomains: jest.fn().mockResolvedValue([])
+      },
+      manageBlockingUseCase: {
+        handleUserAction: jest.fn().mockResolvedValue({ success: true, action: 'allow' })
       },
       eventRepository: {
         findRecent: jest.fn().mockResolvedValue([]),
@@ -559,7 +565,7 @@ describe('MessageHandler', () => {
         1
       );
 
-      expect(result).toEqual({ success: true });
+      expect(result).toMatchObject({ success: true });
     });
 
     it('사용자 닫기 액션을 처리해야 함', async () => {
@@ -574,7 +580,7 @@ describe('MessageHandler', () => {
         1
       );
 
-      expect(result).toEqual({ success: true });
+      expect(result).toMatchObject({ success: true });
     });
   });
 });

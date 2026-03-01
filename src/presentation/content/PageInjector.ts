@@ -66,6 +66,7 @@ export interface InterceptedRequestEvent {
   url: string;
   method: string;
   body?: string;
+  initiatorScript?: string;
   timestamp: number;
 }
 

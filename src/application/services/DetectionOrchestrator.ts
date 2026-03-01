@@ -85,6 +85,7 @@ import {
   getRecommendationForVerdict,
   Verdict
 } from '@domain/value-objects/Verdict';
+import { PayloadFormat } from '@shared/utils/payloadFormatUtils';
 
 /**
  * 입력 버퍼 아이템
@@ -211,7 +212,8 @@ export class DetectionOrchestrator {
             recentInputs: context.recentInputs,
             currentDomain: context.currentDomain,
             heuristicVerdict: heuristicResult.verdict,
-            heuristicConfidence: heuristicResult.confidence
+            heuristicConfidence: heuristicResult.confidence,
+            heuristicReason: heuristicResult.reason
           };
 
           if (context.externalScripts !== undefined) {
@@ -312,6 +314,8 @@ export class DetectionOrchestrator {
       url: string;
       method: string;
       payloadSize: number;
+      payloadFormat?: PayloadFormat;
+      initiatorScript?: string;
       timestamp: number;
       headers?: Record<string, string>;
     } = {
@@ -324,6 +328,14 @@ export class DetectionOrchestrator {
 
     if (dto.request.headers !== undefined) {
       requestProps.headers = dto.request.headers;
+    }
+
+    if (dto.request.payloadFormat !== undefined) {
+      requestProps.payloadFormat = dto.request.payloadFormat;
+    }
+
+    if (dto.request.initiatorScript !== undefined) {
+      requestProps.initiatorScript = dto.request.initiatorScript;
     }
 
     const request: NetworkRequest = createNetworkRequest(requestProps);
@@ -359,7 +371,7 @@ export class DetectionOrchestrator {
     matchedRuleIds: readonly string[];
     usedAI: boolean;
     analysisTimeMs: number;
-    details?: Record<string, unknown>;
+    details?: { suspiciousFactors: string[]; safeFactors: string[]; };
   }): AnalysisResponseDTO {
     const response: AnalysisResponseDTO = {
       verdict: params.verdict,

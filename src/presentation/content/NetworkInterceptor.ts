@@ -56,6 +56,7 @@ export interface InterceptedRequest {
   method: string;
   headers: Record<string, string>;
   body?: string;
+  initiatorScript?: string;
   timestamp: number;
 }
 

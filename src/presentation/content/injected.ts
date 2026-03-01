@@ -86,10 +86,29 @@
     }
   }
 
+  // 요청을 시작한 외부 스크립트 URL 추출 (콜 스택 분석)
+  function getInitiatorScript(): string | undefined {
+    try {
+      const stack = new Error().stack ?? '';
+      const lines = stack.split('\n');
+      for (const line of lines) {
+        // 스택 라인에서 http(s):// URL 추출 (chrome-extension:// 제외)
+        const match = line.match(/at (?:.*? \()?(https?:\/\/[^:)\s]+)/);
+        if (match !== null && match[1] !== undefined) {
+          return match[1];
+        }
+      }
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   // 콘텐츠 스크립트로 메시지 전송
   function notifyContentScript(type: string, url: string, method: string, body?: string): void {
     try {
       const absoluteUrl = toAbsoluteUrl(url);
+      const initiatorScript = getInitiatorScript();
       window.postMessage({
         type: '__FJ_GUARD_REQUEST__',
         payload: {
@@ -97,6 +116,7 @@
           url: absoluteUrl,
           method: method,
           body: body,
+          initiatorScript: initiatorScript,
           timestamp: Date.now()
         }
       }, '*');

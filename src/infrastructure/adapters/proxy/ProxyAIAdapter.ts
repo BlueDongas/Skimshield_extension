@@ -89,22 +89,28 @@ export class ProxyAIAdapter implements IAIAnalyzer {
   private toProxyRequest(request: AIAnalysisRequest): ProxyAnalysisRequest {
     const { request: req, recentInputs, currentDomain, externalScripts } = request;
 
-    const contentType = req.headers['content-type'] ?? req.headers['Content-Type'] ?? '';
-    let payloadFormat: 'json' | 'form' | 'unknown' = 'unknown';
-    if (contentType.includes('application/json')) {
-      payloadFormat = 'json';
-    } else if (
-      contentType.includes('application/x-www-form-urlencoded') ||
-      contentType.includes('multipart/form-data')
-    ) {
-      payloadFormat = 'form';
+    let payloadFormat: 'JSON' | 'FORM_DATA' | 'BASE64' | 'UNKNOWN';
+    if (req.payloadFormat !== undefined) {
+      // content layer에서 body를 직접 분석해 감지한 값을 우선 사용
+      payloadFormat = req.payloadFormat;
+    } else {
+      // body가 없는 경우(form submit 등) Content-Type 헤더로 추론
+      const contentType = req.headers['content-type'] ?? req.headers['Content-Type'] ?? '';
+      if (contentType.includes('application/json')) {
+        payloadFormat = 'JSON';
+      } else if (
+        contentType.includes('application/x-www-form-urlencoded') ||
+        contentType.includes('multipart/form-data')
+      ) {
+        payloadFormat = 'FORM_DATA';
+      } else {
+        payloadFormat = 'UNKNOWN';
+      }
     }
 
-    let triggerEvent: 'page_unload' | 'form_submit' | 'network_request' = 'network_request';
-    if (req.type === NetworkRequestType.BEACON) {
-      triggerEvent = 'page_unload';
-    } else if (req.type === NetworkRequestType.FORM) {
-      triggerEvent = 'form_submit';
+    let triggerEvent: 'click' | 'submit' | 'blur' | 'timer' | 'unknown' = 'unknown';
+    if (req.type === NetworkRequestType.FORM) {
+      triggerEvent = 'submit';
     }
 
     const mostRecent = findMostRecentInput(recentInputs);
@@ -119,7 +125,7 @@ export class ProxyAIAdapter implements IAIAnalyzer {
         type: req.type,
         payloadSize: req.payloadSize,
         payloadFormat,
-        initiatorScript: '',
+        initiatorScript: req.initiatorScript ?? '',
       },
       behaviorContext: {
         triggerEvent,
@@ -136,7 +142,7 @@ export class ProxyAIAdapter implements IAIAnalyzer {
       heuristicContext: {
         verdict: (request.heuristicVerdict ?? Verdict.UNKNOWN).toUpperCase(),
         confidence: request.heuristicConfidence ?? 0,
-        reason: '',
+        reason: request.heuristicReason ?? '',
       },
     };
   }

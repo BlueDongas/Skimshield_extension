@@ -39,6 +39,8 @@
  * ============================================================================
  */
 
+import { PayloadFormat } from '@shared/utils/payloadFormatUtils';
+
 /**
  * 네트워크 요청 타입 열거형
  */
@@ -59,6 +61,8 @@ export interface NetworkRequestProps {
   method: string;
   headers?: Record<string, string>;
   payloadSize: number;
+  payloadFormat?: PayloadFormat;
+  initiatorScript?: string;
   timestamp: number;
 }
 
@@ -117,6 +121,8 @@ export function createNetworkRequest(props: NetworkRequestProps): NetworkRequest
     method: props.method,
     headers: frozenHeaders,
     payloadSize: props.payloadSize,
+    ...(props.payloadFormat !== undefined ? { payloadFormat: props.payloadFormat } : {}),
+    ...(props.initiatorScript !== undefined ? { initiatorScript: props.initiatorScript } : {}),
     timestamp: props.timestamp,
     domain
   });

@@ -416,6 +416,11 @@ export class MessageHandler {
       return { success: true };
     }
 
+    // allow + remember 조합 시 화이트리스트에 영구 등록
+    if (payload.action === 'allow' && payload.remember === true) {
+      await this.deps.manageSettingsUseCase.manageWhitelist('add', payload.domain);
+    }
+
     // ManageBlockingUseCase를 통해 액션 처리
     const result = await this.deps.manageBlockingUseCase.handleUserAction({
       action: payload.action,

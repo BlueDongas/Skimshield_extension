@@ -51,6 +51,7 @@
 import { NetworkRequestType } from '@domain/entities/NetworkRequest';
 import { SensitiveFieldType } from '@domain/value-objects/SensitiveFieldType';
 import { Recommendation, Verdict } from '@domain/value-objects/Verdict';
+import { PayloadFormat } from '@shared/utils/payloadFormatUtils';
 
 /**
  * 분석 요청 DTO
@@ -63,6 +64,8 @@ export interface AnalysisRequestDTO {
     method: string;
     headers?: Record<string, string>;
     payloadSize: number;
+    payloadFormat?: PayloadFormat;
+    initiatorScript?: string;
     timestamp: number;
   };
   /** 최근 민감 입력 정보 */
@@ -96,7 +99,7 @@ export interface AnalysisResponseDTO {
   /** 분석 소요 시간 (ms) */
   analysisTimeMs: number;
   /** 상세 정보 */
-  details?: Record<string, unknown>;
+  details?: { suspiciousFactors: string[]; safeFactors: string[]; };
 }
 
 /**

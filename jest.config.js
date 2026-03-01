@@ -54,6 +54,10 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/(?!(dexie)/)'
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tests/e2e/'
+  ],
   verbose: true,
   testTimeout: 10000
 };

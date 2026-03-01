@@ -170,7 +170,7 @@ export class AnalyzeNetworkRequestUseCase {
             matchedRuleIds: readonly string[];
             usedAI: boolean;
             analysisTimeMs: number;
-            details?: Record<string, unknown>;
+            details?: { suspiciousFactors: string[]; safeFactors: string[]; };
           } = {
             verdict: aiResult.verdict,
             confidence: aiResult.confidence,
@@ -258,7 +258,7 @@ export class AnalyzeNetworkRequestUseCase {
     matchedRuleIds: readonly string[];
     usedAI: boolean;
     analysisTimeMs: number;
-    details?: Record<string, unknown>;
+    details?: { suspiciousFactors: string[]; safeFactors: string[]; };
   }): AnalysisResponseDTO {
     const response: AnalysisResponseDTO = {
       verdict: params.verdict,

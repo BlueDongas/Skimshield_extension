@@ -81,7 +81,7 @@ interface ParsedAIResponse {
   confidence: number;
   reason: string;
   recommendation: string;
-  details?: Record<string, unknown>;
+  details?: { suspiciousFactors: string[]; safeFactors: string[]; };
 }
 
 /**

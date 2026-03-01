@@ -62,6 +62,7 @@ import { MessageType, Message, MessageResponse } from '@domain/ports/IMessenger'
 import { SensitiveFieldType } from '@domain/value-objects/SensitiveFieldType';
 import { Verdict, Recommendation } from '@domain/value-objects/Verdict';
 
+import { detectPayloadFormat } from '@shared/utils/payloadFormatUtils';
 import { DOMAnalyzer } from './DOMAnalyzer';
 import { InputMonitor, SensitiveFieldInfo } from './InputMonitor';
 import { NetworkInterceptor, InterceptedRequest } from './NetworkInterceptor';
@@ -162,7 +163,8 @@ class ContentScript {
         method: event.method,
         headers: {},
         timestamp: event.timestamp,
-        ...(event.body !== undefined ? { body: event.body } : {})
+        ...(event.body !== undefined ? { body: event.body } : {}),
+        ...(event.initiatorScript !== undefined ? { initiatorScript: event.initiatorScript } : {})
       };
       void this.handleNetworkRequest(request);
     });
@@ -390,12 +392,19 @@ class ContentScript {
     targetUrl?: string;
   } | null> {
     try {
+      const contentType = request.headers['content-type'] ?? request.headers['Content-Type'] ?? '';
+      const detectedFormat = request.body !== undefined
+        ? detectPayloadFormat(request.body, contentType)
+        : undefined;
+
       const requestPayload = {
         type: request.type,
         url: request.url,
         method: request.method,
         headers: request.headers ?? {},
         payloadSize: request.body?.length ?? 0,
+        ...(detectedFormat !== undefined ? { payloadFormat: detectedFormat } : {}),
+        ...(request.initiatorScript !== undefined ? { initiatorScript: request.initiatorScript } : {}),
         timestamp: request.timestamp
       };
 
@@ -416,7 +425,7 @@ class ContentScript {
           verdict: Verdict;
           recommendation: Recommendation;
           reason: string;
-          details?: Record<string, unknown>;
+          details?: { suspiciousFactors: string[]; safeFactors: string[]; };
         }
       >({
         type: MessageType.ANALYZE_REQUEST,
@@ -443,8 +452,8 @@ class ContentScript {
           message: data.reason,
           targetUrl: request.url
         };
-        if (data.details) {
-          result.details = Object.values(data.details).map(String);
+        if (data.details !== undefined) {
+          result.details = [...data.details.suspiciousFactors, ...data.details.safeFactors];
         }
         return result;
       }

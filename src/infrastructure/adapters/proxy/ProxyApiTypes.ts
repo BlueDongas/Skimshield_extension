@@ -4,11 +4,11 @@ export interface ProxyAnalysisRequest {
     method: string;
     type: string;
     payloadSize: number;
-    payloadFormat: 'json' | 'form' | 'unknown';
+    payloadFormat: 'JSON' | 'FORM_DATA' | 'BASE64' | 'UNKNOWN';
     initiatorScript: string;
   };
   behaviorContext: {
-    triggerEvent: 'page_unload' | 'form_submit' | 'network_request';
+    triggerEvent: 'click' | 'submit' | 'blur' | 'timer' | 'unknown';
     timeSinceLastInputMs: number;
   };
   recentInputs: Array<{
@@ -31,7 +31,10 @@ export interface ProxyAnalysisResponse {
   confidence: number;
   recommendation: string;
   reasonMessage: string;
-  analysisDetails?: Record<string, unknown>;
+  analysisDetails?: {
+    suspiciousFactors: string[];
+    safeFactors: string[];
+  };
 }
 
 export interface ProxyAdapterConfig {

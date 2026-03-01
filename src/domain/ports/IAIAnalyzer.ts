@@ -57,6 +57,7 @@ export interface AIAnalysisRequest {
   externalScripts?: readonly string[];
   heuristicVerdict?: Verdict;
   heuristicConfidence?: number;
+  heuristicReason?: string;
 }
 
 /**
@@ -67,7 +68,7 @@ export interface AIAnalysisResponse {
   confidence: number;
   reason: string;
   recommendation: Recommendation;
-  details?: Record<string, unknown>;
+  details?: { suspiciousFactors: string[]; safeFactors: string[]; };
 }
 
 /**

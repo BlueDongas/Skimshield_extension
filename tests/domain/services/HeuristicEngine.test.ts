@@ -25,6 +25,9 @@ describe('HeuristicEngine', () => {
 
   beforeEach(() => {
     engine = createHeuristicEngine();
+    // createHeuristicEngine()은 기본 규칙을 자동 등록하므로
+    // 단위 테스트용으로 모두 초기화한다
+    [...engine.getRules()].forEach((rule) => engine.unregisterRule(rule.id));
   });
 
   describe('createHeuristicEngine', () => {

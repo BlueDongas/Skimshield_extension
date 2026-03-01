@@ -19,7 +19,7 @@ export interface ProxyAnalysisRequest {
     currentDomain: string;
     externalScripts: string[];
   };
-  heuristicContext: {
+  heuristicContext?: {
     verdict: string;
     confidence: number;
     reason: string;
@@ -27,9 +27,9 @@ export interface ProxyAnalysisRequest {
 }
 
 export interface ProxyAnalysisResponse {
-  verdict: string;
+  verdict: 'DANGEROUS' | 'SUSPICIOUS' | 'SAFE' | 'UNKNOWN';
   confidence: number;
-  recommendation: string;
+  recommendation: 'BLOCK' | 'WARN' | 'PROCEED';
   reasonMessage: string;
   analysisDetails?: {
     suspiciousFactors: string[];

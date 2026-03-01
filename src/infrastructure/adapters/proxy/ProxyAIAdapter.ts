@@ -3,7 +3,6 @@ import {
   AIAnalysisResponse,
   IAIAnalyzer
 } from '@domain/ports/IAIAnalyzer';
-import { NetworkRequestType } from '@domain/entities/NetworkRequest';
 import { findMostRecentInput } from '@domain/entities/SensitiveInput';
 import { Recommendation, Verdict } from '@domain/value-objects/Verdict';
 import { maskUrlQueryParams } from '@shared/utils/maskingUtils';

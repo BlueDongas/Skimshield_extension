@@ -390,7 +390,7 @@ class ContentScript {
    */
   private async requestAnalysis(
     request: InterceptedRequest,
-    sensitiveInputs: Array<{ fieldType: SensitiveFieldType; timestamp: number }>
+    sensitiveInputs: Array<{ fieldType: SensitiveFieldType; inputLength: number; timestamp: number }>
   ): Promise<{
     verdict: Verdict;
     recommendation: Recommendation;

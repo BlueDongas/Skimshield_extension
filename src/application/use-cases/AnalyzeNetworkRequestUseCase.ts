@@ -148,6 +148,7 @@ export class AnalyzeNetworkRequestUseCase {
       const aiAvailable = await this.aiAnalyzer.isAvailable();
 
       if (aiAvailable) {
+        this.aiAnalyzer.setEnabled(true);
         try {
           const aiRequest: Parameters<typeof this.aiAnalyzer.analyze>[0] = {
             request: context.request,

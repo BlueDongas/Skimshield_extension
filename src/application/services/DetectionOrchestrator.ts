@@ -206,6 +206,7 @@ export class DetectionOrchestrator {
       const aiAvailable = await this.aiAnalyzer.isAvailable();
 
       if (aiEnabled && aiAvailable) {
+        this.aiAnalyzer.setEnabled(true);
         try {
           const aiRequest: Parameters<typeof this.aiAnalyzer.analyze>[0] = {
             request: context.request,

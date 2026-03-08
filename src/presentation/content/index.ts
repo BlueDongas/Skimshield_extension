@@ -75,7 +75,7 @@ import { WarningModal, WarningInfo, UserAction } from './WarningModal';
 interface ContentScriptState {
   isInitialized: boolean;
   currentVerdict: Verdict;
-  sensitiveInputs: Map<string, { fieldType: SensitiveFieldType; timestamp: number }>;
+  sensitiveInputs: Map<string, { fieldType: SensitiveFieldType; inputLength: number; timestamp: number }>;
   pendingRequests: Map<string, InterceptedRequest>;
 }
 
@@ -200,6 +200,7 @@ class ContentScript {
     // 민감 입력 기록
     this.state.sensitiveInputs.set(info.fieldId, {
       fieldType: info.fieldType,
+      inputLength: value.length,
       timestamp: Date.now()
     });
 
@@ -356,9 +357,9 @@ class ContentScript {
    */
   private getRecentSensitiveInputs(
     withinMs: number
-  ): Array<{ fieldType: SensitiveFieldType; timestamp: number }> {
+  ): Array<{ fieldType: SensitiveFieldType; inputLength: number; timestamp: number }> {
     const threshold = Date.now() - withinMs;
-    const recent: Array<{ fieldType: SensitiveFieldType; timestamp: number }> = [];
+    const recent: Array<{ fieldType: SensitiveFieldType; inputLength: number; timestamp: number }> = [];
 
     this.state.sensitiveInputs.forEach((input) => {
       if (input.timestamp > threshold) {
@@ -389,7 +390,7 @@ class ContentScript {
    */
   private async requestAnalysis(
     request: InterceptedRequest,
-    sensitiveInputs: Array<{ fieldType: SensitiveFieldType; timestamp: number }>
+    sensitiveInputs: Array<{ fieldType: SensitiveFieldType; inputLength: number; timestamp: number }>
   ): Promise<{
     verdict: Verdict;
     recommendation: Recommendation;
@@ -437,7 +438,7 @@ class ContentScript {
 
       const recentInputsPayload = sensitiveInputs.map((input) => ({
         fieldType: input.fieldType,
-        inputLength: 0,
+        inputLength: input.inputLength,
         timestamp: input.timestamp
       }));
 

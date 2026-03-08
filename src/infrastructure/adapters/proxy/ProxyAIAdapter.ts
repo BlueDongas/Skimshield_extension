@@ -64,7 +64,7 @@ export class ProxyAIAdapter implements IAIAnalyzer {
       );
 
       clearTimeout(timeoutId);
-      return response.ok;
+      return true; // 어떤 HTTP 응답이든 오면 서버가 살아있음
     } catch {
       return false;
     }

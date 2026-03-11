@@ -211,6 +211,9 @@ describe('Performance Benchmark E2E Tests', () => {
     it('should not leak memory on repeated page navigations', async () => {
       const memoryReadings: number[] = [];
 
+      // Enable HeapProfiler for forced GC via CDP
+      await cdpSession.send('HeapProfiler.enable');
+
       // Navigate multiple times
       for (let i = 0; i < 5; i++) {
         await page.goto(getTestPageUrl('normal-payment.html'), {
@@ -221,12 +224,8 @@ describe('Performance Benchmark E2E Tests', () => {
           cardNumber: '4111 1111 1111 1111'
         });
 
-        // Force garbage collection if possible
-        await page.evaluate(() => {
-          if (typeof (globalThis as Record<string, unknown>).gc === 'function') {
-            (globalThis as Record<string, () => void>).gc();
-          }
-        });
+        // Force garbage collection via CDP
+        await cdpSession.send('HeapProfiler.collectGarbage');
 
         const metrics = await getMemoryMetrics();
         memoryReadings.push(metrics.JSHeapUsedSize);

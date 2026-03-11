@@ -58,7 +58,7 @@ export class ProxyAIAdapter implements IAIAnalyzer {
         PROXY_CONFIG.HEALTH_CHECK_TIMEOUT_MS
       );
 
-      const response = await fetch(
+      await fetch(
         `${this.baseUrl}${PROXY_CONFIG.HEALTH_ENDPOINT}`,
         { method: 'GET', signal: controller.signal }
       );

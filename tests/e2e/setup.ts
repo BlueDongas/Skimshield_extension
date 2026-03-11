@@ -58,8 +58,8 @@ export async function launchBrowserWithExtension(): Promise<Browser> {
     }
   });
 
-  // 확장 프로그램 로드 대기
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // 확장 프로그램 로드 대기 (IndexedDB 초기화 포함)
+  await new Promise(resolve => setTimeout(resolve, 5000));
 
   return browser;
 }
@@ -245,7 +245,7 @@ export async function fillSensitiveForm(
  */
 export async function waitForWarningModal(page: Page, timeout = 10000): Promise<boolean> {
   try {
-    await page.waitForSelector('[data-testid="warning-modal"], .formjacking-guard-modal', {
+    await page.waitForSelector('[data-formjacking-modal], [data-testid="warning-modal"], .formjacking-guard-modal', {
       timeout
     });
     return true;

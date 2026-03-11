@@ -155,7 +155,8 @@ export class AnalyzeNetworkRequestUseCase {
             recentInputs: context.recentInputs,
             currentDomain: context.currentDomain,
             heuristicVerdict: heuristicResult.verdict,
-            heuristicConfidence: heuristicResult.confidence
+            heuristicConfidence: heuristicResult.confidence,
+            heuristicReason: heuristicResult.reason
           };
 
           if (context.externalScripts !== undefined) {

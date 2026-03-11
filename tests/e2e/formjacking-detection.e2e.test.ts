@@ -308,7 +308,7 @@ describe('Formjacking Detection E2E Tests', () => {
       if (warningAppeared) {
         // Then: Modal should contain threat information
         const modalContent = await page.$eval(
-          '[data-testid="warning-modal"], .formjacking-guard-modal',
+          '[data-formjacking-modal], [data-testid="warning-modal"], .formjacking-guard-modal',
           el => el.textContent ?? ''
         );
 
